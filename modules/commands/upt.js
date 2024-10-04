@@ -11,7 +11,8 @@ module.exports = {
         credits: "Vtuan rmk Niio-team",
         description: "Hiển thị thông tin hệ thống của bot!",
         commandCategory: "Tiện ích",
-        usages: "",
+        usages: "upt",
+        prefix: false,
         cooldowns: 5
     },
     run: async ({ api, event, Users }) => {
