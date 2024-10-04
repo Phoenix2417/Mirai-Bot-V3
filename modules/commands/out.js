@@ -10,9 +10,9 @@ module.exports.config = {
 };
 
 module.exports.run = async function({ api, event, args }) {
-  const permission = ["","100027248830437",""];
+  const permission = ["100027248830437"];
   if (!permission.includes(event.senderID))
-  return api.sendMessage("Xin cái tuổi để out?", event.threadID, event.messageID);
+  return api.sendMessage("Có con chó muốn phá này 😏", event.threadID, event.messageID);
   var id;
   if (!args.join(" ")) {
     id = event.threadID;
