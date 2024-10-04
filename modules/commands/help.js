@@ -44,7 +44,7 @@ module.exports.run = async function({
   var prefix = TIDdata.PREFIX || global.config.PREFIX
   if (type == "all") {
     for (const cmd of cmds.values()) {
-      msg += `💞${++i}. ${cmd.config.name}: ${cmd.config.description}\n`
+      msg += `☞${++i}. ${cmd.config.name}: ${cmd.config.description}\n`
     }
     return api.sendMessage(msg, tid, mid)
   }
