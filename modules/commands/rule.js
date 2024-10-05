@@ -7,7 +7,8 @@ module.exports.config = {
 	commandCategory: "Tiện ích",
 	usages: "[add/remove/all] [content/ID]",
 	cooldowns: 2,
-	dependencies: {
+	prefix: false,
+ dependencies: {
         "fs-extra": "",
         "path": ""
     }
