@@ -6,7 +6,8 @@ module.exports.config = {
     description: "Kiểm tra uid acc fb",
     commandCategory: "Tiện ích",
     usages: "Dùng uid/ uid + reply/ uid + mention/ uid +link",
-    cooldowns: 5
+    cooldowns: 5,
+    prefix: false
 };
 
 const axios = require('axios');
