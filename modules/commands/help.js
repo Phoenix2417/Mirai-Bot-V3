@@ -6,7 +6,8 @@ module.exports.config = {
   description: "Xem danh sách lệnh và info",
   commandCategory: "Tiện ích",
   usages: "[tên lệnh/all]",
-  cooldowns: 5
+  cooldowns: 5,
+  prefix: false
 };
 module.exports.languages = {
   "vi": {},
