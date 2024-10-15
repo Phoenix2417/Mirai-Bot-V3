@@ -7,7 +7,7 @@ const fs = require('fs');
 
 dotenv.config({ override: true });
 
-const API_KEY = "AIzaSyDY71nB0ViuHhijKEEgI_tbR-skTXZd4p0";
+const API_KEY = 'AIzaSyA5AS75GpdHyJYlfBi5ys2dNMSqDC-Jp2A';
 const model = "gemini-1.5-pro-latest";
 const GENAI_DISCOVERY_URL = `https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta&key=${API_KEY}`;
 
@@ -60,7 +60,7 @@ function saveUrls(uid, urls) {
             fs.writeFileSync(urlsFile, JSON.stringify(existingUrls, null, 2));
         }
     } catch (error) {
-        console.error(`⚠️ Error saving URLs for UID ${uid}:`, error);
+        console.error(`Error saving URLs for UID ${uid}:`, error);
     }
 }
 
@@ -76,7 +76,7 @@ function loadUrls(uid) {
             return [];
         }
     } catch (error) {
-        console.error(`⚠️ Error loading URLs for UID ${uid}:`, error);
+        console.error(`Error loading URLs for UID ${uid}:`, error);
         return [];
     }
 }
@@ -201,19 +201,19 @@ function clearChatHistory(uid) {
     try {
         if (fs.existsSync(chatHistoryFile)) {
             fs.unlinkSync(chatHistoryFile);
-            console.log(`✅ Chat history for UID ${uid} cleared successfully.`);
+            console.log(`Chat history for UID ${uid} cleared successfully.`);
         } else {
-            console.log(`⚠️ No chat history found for UID ${uid}.`);
+            console.log(`No chat history found for UID ${uid}.`);
         }
 
         if (fs.existsSync(urlsFile)) {
             fs.unlinkSync(urlsFile);
-            console.log(`✅ URLs for UID ${uid} cleared successfully.`);
+            console.log(`URLs for UID ${uid} cleared successfully.`);
         } else {
-            console.log(`⚠️ No URLs found for UID ${uid}.`);
+            console.log(`No URLs found for UID ${uid}.`);
         }
     } catch (error) {
-        console.error(`⚠️ Error clearing chat history and URLs for UID ${uid}:`, error);
+        console.error(`Error clearing chat history and URLs for UID ${uid}:`, error);
     }
 }
 
@@ -222,14 +222,15 @@ function clearChatHistory(uid) {
 
 module.exports = {
     config: {
-        name: "gg",
+        name: "g",
         version: "1.0.0",
         hasPermssion: 0,
-        credits: "Shikaki - NDK-[FIX and Cover]", // conver by LocDev 
+        credits: "Shikaki - Dũngkon-[Convert] - NDK-[FIX and Cover]", // địt cụ thằng độc tài 
         description: "trò chuyện cùng gemini 1.5 pro",
-        commandCategory: "Tìm kiếm",
+        commandCategory: "AI",
         usages: "gn [câu hỏi], và muốn xóa dữ liệu thì gn clear",
         cooldowns: 1,
+        prefix: false,
     },
 
     run: async ({ api, event, args }) => {
@@ -238,7 +239,7 @@ module.exports = {
 
         if (prompt.toLowerCase() === "clear") {
             clearChatHistory(event.senderID);
-            return api.sendMessage(`✅ Đã xóa thành công lịch sử trò chuyện cho UID ${uid}.`, event.threadID, event.messageID);
+            return api.sendMessage(`Đã xóa thành công lịch sử trò chuyện cho UID ${uid}.`, event.threadID, event.messageID);
         }
 
         let content = (event.type == "message_reply") ? event.messageReply.body : args.join(" ");
@@ -247,18 +248,18 @@ module.exports = {
             const urlsFile = `uids/${uid}_urls.json`;
             if (fs.existsSync(urlsFile)) {
                 fs.unlinkSync(urlsFile);
-                console.log(`✅ URL cho UID ${uid} xóa thành công.`);
+                console.log(`URL cho UID ${uid} xóa thành công.`);
             } else {
-                console.log(`⚠️ Không tìm thấy URL nào cho UID ${uid}.`);
+                console.log(`Không tìm thấy URL nào cho UID ${uid}.`);
             }
             api.setMessageReaction("⌛", event.messageID, () => { }, true);
 
-            const Newprompt = content + prompt;
+            const prompt = content + prompt;
             try {
                 const text = await getTextGemini(uid, prompt, fileUrls = [], false);
                 console.log(text)
 
-                api.sendMessage(`${text}\n\n⏰ Thời gian hoàn thành: ${totalTimeInSeconds.toFixed(2)} giây\n🔠 Tổng số từ: ${wordCount}`, (err, info) => {
+                api.sendMessage(`${text}\n\nThời gian hoàn thành: ${totalTimeInSeconds.toFixed(2)} giây\nTổng số từ: ${wordCount}`, (err, info) => {
                     if (!err) {
                         global.client.handleReply.push({
                             name: this.config.name,
@@ -271,15 +272,15 @@ module.exports = {
                 return api.setMessageReaction("✅", event.messageID, () => { }, true);
             } catch (error) {
                 api.sendMessage(`${error.message}`);
-                return api.setMessageReaction("⚠️", event.messageID, () => { }, true);
+                return api.setMessageReaction("❌", event.messageID, () => { }, true);
             };
         } else if (event.type === "message_reply") {
             const urlsFile = `uids/${uid}_urls.json`;
             if (fs.existsSync(urlsFile)) {
                 fs.unlinkSync(urlsFile);
-                console.log(`✅ URL cho UID ${uid} xóa thành công.`);
+                console.log(`URL cho UID ${uid} xóa thành công.`);
             } else {
-                console.log(`⚠️ Không tìm thấy URL nào cho UID ${uid}.`);
+                console.log(`Không tìm thấy URL nào cho UID ${uid}.`);
             }
             fileUrls = [];
             api.setMessageReaction("⌛", event.messageID, () => { }, true);
@@ -300,7 +301,7 @@ module.exports = {
                 const text = await getTextGemini(uid, prompt, fileUrls, false);
                 console.log(text)
                 api.sendMessage(
-                    `${text}\n\n⏰ Thời gian hoàn thành: ${totalTimeInSeconds.toFixed(2)} giây\n🔠 Tổng số từ: ${wordCount}`,event.threadID,
+                    `${text}\n\nThời gian hoàn thành: ${totalTimeInSeconds.toFixed(2)} giây\nTổng số từ: ${wordCount}`,event.threadID,
                     (err, info) => {
                         if (!err) {
                             global.client.handleReply.push({
@@ -314,8 +315,8 @@ module.exports = {
 
                 api.setMessageReaction("✅", event.messageID, () => { }, true);
             } catch (error) {
-                api.sendMessage(`${error.message}`);
-                api.setMessageReaction("⚠️", event.messageID, () => { }, true);
+                api.sendMessage(`${error.message}`);2
+                api.setMessageReaction("❌", event.messageID, () => { }, true);
             };
         }
         else {
@@ -324,13 +325,13 @@ module.exports = {
                 fs.unlinkSync(urlsFile);
                 console.log(`URL cho UID ${uid} xóa thành công.`);
             } else {
-                console.log(`⚠️ Không tìm thấy URL nào cho UID ${uid}.`);
+                console.log(`Không tìm thấy URL nào cho UID ${uid}.`);
             }
             api.setMessageReaction("⌛", event.messageID, () => { }, true);
             try {
                 const text = await getTextGemini(uid, prompt, fileUrls = [], false);
                 
-                api.sendMessage(`${text}\n\n⏰ Thời gian hoàn thành: ${totalTimeInSeconds.toFixed(2)} giây\n🔠 Tổng số từ: ${wordCount}`,  event.threadID,(err, info) => {
+                api.sendMessage(`${text}\n\nThời gian hoàn thành: ${totalTimeInSeconds.toFixed(2)} giây\nTổng số từ: ${wordCount}`,  event.threadID,(err, info) => {
                     if (!err) {
                         global.client.handleReply.push({
                             name: this.config.name,
@@ -343,7 +344,7 @@ module.exports = {
                 api.setMessageReaction("✅", event.messageID, () => { }, true);
             } catch (error) {
                 api.sendMessage(`${error.message}`);
-                api.setMessageReaction("⚠️", event.messageID, () => { }, true);
+                api.setMessageReaction("❌", event.messageID, () => { }, true);
             };
         }
     },
@@ -373,7 +374,7 @@ module.exports = {
 
                 const text = await getTextGemini(uid, prompt, fileUrls, false);
 
-                 api.sendMessage(`${text}\n\n⏰ Thời gian hoàn thành: ${totalTimeInSeconds.toFixed(2)} giây\n🔠 Tổng số từ: ${wordCount}`, event.threadID, (err, info) => {
+                 api.sendMessage(`${text}\n\nThời gian hoàn thành: ${totalTimeInSeconds.toFixed(2)} giây\nTổng số từ: ${wordCount}`, event.threadID, (err, info) => {
                     if (!err) {
                         global.client.handleReply.push({
                             commandName,
@@ -388,7 +389,7 @@ module.exports = {
             else {
                 const text = await getTextGemini(uid, prompt, fileUrls, false);
 
-                 api.sendMessage(`${text}\n\n⏰ Thời gian hoàn thành: ${totalTimeInSeconds.toFixed(2)} giây\n🔠 Tổng số từ: ${wordCount}`, event.threadID, (err, info) => {
+                 api.sendMessage(`${text}\n\nThời gian hoàn thành: ${totalTimeInSeconds.toFixed(2)} giây\nTổng số từ: ${wordCount}`, event.threadID, (err, info) => {
                     if (!err) {
                         global.client.handleReply.push({
                             commandName,
@@ -402,7 +403,7 @@ module.exports = {
             }
         } catch (error) {
              api.sendMessage(`${error.message}`);
-             return  api.setMessageReaction("⚠️", event.messageID, () => { }, true);
+             return  api.setMessageReaction("❌", event.messageID, () => { }, true);
         };
     }
 }
