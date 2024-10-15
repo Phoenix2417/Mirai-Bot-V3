@@ -1,141 +1,146 @@
+const fs = require("fs");
+const path = require("path");
+
 module.exports.config = {
   name: "duyet",
   version: "1.0.2",
   hasPermssion: 2,
-  credits: "DungUwU mod by Nam",
+  credits: "DungUwU mod by DongDev",
   description: "duyệt box dùng bot xD",
   commandCategory: "Admin",
-    cooldowns: 2
+  cooldowns: 5,
+  prefix: false
 };
 
+const dataPath = path.resolve(__dirname, "../../utils/data/approvedThreads.json");
+const dataPendingPath = path.resolve(__dirname, "../../utils/data/pendingThreads.json");
 
-const dataPath = __dirname + "/cache/approvedThreads.json";
-const dataPending = __dirname + "/cache/pendingdThreads.json";
-const fs = require("fs");
+module.exports.handleReply = async function ({ event, api, handleReply }) {
+  if (handleReply.author !== event.senderID) return;
+  const { body, threadID, messageID } = event;
+  let approvedThreads = JSON.parse(fs.readFileSync(dataPath));
+  let pendingThreads = JSON.parse(fs.readFileSync(dataPendingPath));
 
-module.exports.onLoad = () => {
-  if (!fs.existsSync(dataPath)) fs.writeFileSync(dataPath, JSON.stringify([]));
-  if (!fs.existsSync(dataPending)) fs.writeFileSync(dataPending, JSON.stringify([]));
-}
-module.exports.handleReply = async function ({ event, api, Currencies, handleReply, Users, args }) {
-    if (handleReply.author != event.senderID) return;
-    const { body, threadID, messageID, senderID } = event;
-    const { type } = handleReply;
-    let data = JSON.parse(fs.readFileSync(dataPath));
-    let dataP = JSON.parse(fs.readFileSync(dataPending));
-    let idBox = (args[0]) ? args[0] : threadID;
-  switch (type) {
-        case "pending": {
-          switch (body) {
-                case `A`: {
-        data.push(idBox);
-        fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
-        api.sendMessage(`» Phê duyệt thành công box:\n${idBox}`, threadID, () => {
-          dataP.splice(dataP.indexOf(idBox), 1);
-        fs.writeFileSync(dataPending, JSON.stringify(dataP, null, 2));
-      }, messageID)
-        }
-        }
+  if (handleReply.type === "pending") {
+    if (body.trim().toLowerCase() === "all") {
+      approvedThreads = approvedThreads.concat(pendingThreads);
+      fs.writeFileSync(dataPath, JSON.stringify(approvedThreads, null, 2));
+      fs.writeFileSync(dataPendingPath, JSON.stringify([], null, 2));
+      pendingThreads.forEach(id => {
+        api.sendMessage("✅ Nhóm của bạn đã được phê duyệt!\n📝 Chúc các bạn dùng bot vui vẻ", id);
+      });
+      return api.sendMessage(`✅ Phê duyệt thành công toàn bộ ${pendingThreads.length} nhóm`, threadID, messageID);
+    }
+
+    const numbers = body.split(" ").map(num => parseInt(num.trim())).filter(num => !isNaN(num));
+    let successCount = 0;
+
+    for (let num of numbers) {
+      const index = num - 1;
+      if (index >= 0 && index < pendingThreads.length) {
+        const idBox = pendingThreads[index];
+        approvedThreads.push(idBox);
+        api.sendMessage("✅ Nhóm của bạn đã được phê duyệt!\n📝 Chúc các bạn dùng bot vui vẻ", idBox);
+        pendingThreads.splice(index, 1);
+        successCount++;
       }
     }
+
+    fs.writeFileSync(dataPath, JSON.stringify(approvedThreads, null, 2));
+    fs.writeFileSync(dataPendingPath, JSON.stringify(pendingThreads, null, 2));
+
+    return successCount > 0 
+      ? api.sendMessage(`✅ Phê duyệt thành công ${successCount} nhóm`, threadID, messageID) 
+      : api.sendMessage("❎ Không có nhóm nào được phê duyệt, vui lòng kiểm tra lại số thứ tự", threadID, messageID);
+  } else if (handleReply.type === "remove") {
+    const idsToRemove = body.split(" ").map(num => parseInt(num) - 1).filter(index => approvedThreads[index]);
+    if (idsToRemove.length) {
+      for (const index of idsToRemove) {
+        const idBox = approvedThreads[index];
+        approvedThreads.splice(index, 1);
+        await api.removeUserFromGroup(api.getCurrentUserID(), idBox); // Bot rời nhóm
+      }
+      fs.writeFileSync(dataPath, JSON.stringify(approvedThreads, null, 2));
+      return api.sendMessage(`✅ Đã xóa các box:\n${idsToRemove.map(index => approvedThreads[index]).join(", ")}`, threadID, messageID);
+    }
+    return api.sendMessage("❎ Không có nhóm nào để xóa", threadID, messageID);
   }
-module.exports.run = async  ({ event, api, args, Threads, Users, handleReply  }) => {
-  const { threadID, messageID, senderID } = event;
-  let data = JSON.parse(fs.readFileSync(dataPath));
-  let dataP = JSON.parse(fs.readFileSync(dataPending));
-  let msg = "";
-  var lydo = args.splice(2).join(" ");
-  let idBox = (args[0]) ? args[0] : threadID;
-        if (args[0] == "list" || args[0] == "l") {
-    msg = "[ 𝗠𝗢𝗗𝗘 ] - 𝗗𝗮𝗻𝗵 𝘀𝗮́𝗰𝗵 𝗰𝗮́𝗰 𝗻𝗵𝗼́𝗺 đ𝗮̃ 𝗱𝘂𝘆𝗲̣̂𝘁\n━━━━━━━━━━━━━━━";
-    let count = 0;
-    for (e of data) {
-       let name = (await api.getThreadInfo(e)).name || "Tên không tồn tại";
-      msg += `\n\n(${count += 1}). ${name}\n🔰 𝗜𝗗: ${e}`;
-      }
-      api.sendMessage(msg, threadID, (error, info) => {
-        global.client.handleReply.push({
-            name: this.config.name,
-            messageID: info.messageID,
-            author: event.senderID,
-            type: "a",
-        })
-    }, messageID);
-        }
-     else if (args[0] == "pending" || args[0] == "p") {
-      msg = `=====「 DS BOX CHƯA DUYỆT: ${dataP.length} 」 ====`;
-      let count = 0;
-      for (e of dataP) {
-        let threadInfo = await api.getThreadInfo(e);
-          let threadName = threadInfo.threadName ? threadInfo.threadName : await Users.getNameUser(e);
-        msg += `\n〘${count+=1}〙» ${threadName}\n${e}`;
-      }
-      api.sendMessage(msg, threadID, (error, info) => {
-        global.client.handleReply.push({
-            name: this.config.name,
-            messageID: info.messageID,
-            author: event.senderID,
-            type: "pending",
-        })
-    }, messageID);
-     }
-       else if (args[0] == "help" || args[0] == "h") {
-         const tst = (await Threads.getData(String(event.threadID))).data || {};
-  const pb = (tst.hasOwnProperty("PREFIX")) ? tst.PREFIX : global.config.PREFIX;
-  const nmdl = this.config.name
-  const cre = this.config.credits
-        return api.sendMessage(`=====「 𝗗𝗨𝗬𝗘̣̂𝗧 𝗕𝗢𝗫 」=====\n━━━━━━━━━━━━━━━\n\n${pb}${nmdl} 𝗹/𝗹𝗶𝘀𝘁 => 𝘅𝗲𝗺 𝗱𝗮𝗻𝗵 𝘀𝗮́𝗰𝗵 𝗯𝗼𝘅 đ𝘂̛𝗼̛̣𝗰 𝗱𝘂𝘆𝗲̣̂𝘁 🎀\n\n${pb}${nmdl} 𝗽/𝗽𝗲𝗻𝗱𝗶𝗻𝗴 => 𝘅𝗲𝗺 𝗱𝗮𝗻𝗵 𝘀𝗮́𝗰𝗵 𝗯𝗼𝘅 𝗰𝗵𝘂̛𝗮 𝗱𝘂𝘆𝗲̣̂𝘁 🎀\n\n${pb}${nmdl} 𝗱/𝗱𝗲𝗹 => 𝗸𝗲̀𝗺 𝘁𝗵𝗲𝗼 𝗜𝗗 đ𝗲̂̉ 𝘅𝗼́𝗮 𝗸𝗵𝗼̉𝗶 𝗱𝗮𝗻𝗵 𝘀𝗮́𝗰𝗵 đ𝘂̛𝗼̛̣𝗰 𝗱𝘂̀𝗻𝗴 𝗯𝗼𝘁 🎀\n\n${pb}${nmdl} => 𝗸𝗲̀𝗺 𝘁𝗵𝗲𝗼 𝗜𝗗 đ𝗲̂̉ 𝗱𝘂𝘆𝗲̣̂𝘁 𝗯𝗼𝘅 đ𝗼́ 🎀\n`, threadID, messageID);
-       }
-    else if (args[0] == "del" || args[0] == "d") {
-      let threadInfo = await api.getThreadInfo(event.threadID);
-  let threadName = threadInfo.threadName;
-      idBox = (args[1]) ? args[1] : event.threadID;
-      if (isNaN(parseInt(idBox))) return api.sendMessage("[ 𝗗𝘂𝘆𝗲̣̂𝘁 𝗗𝗲𝗹 ] ➠  Không phải một con số", threadID, messageID);
-      if (!data.includes(idBox)) return api.sendMessage("[ 𝗗𝘂𝘆𝗲̣̂𝘁 𝗗𝗲𝗹 ] ➠  Nhóm không được duyệt từ trước", threadID, messageID);
+};
 
-  api.sendMessage(`====『 𝗗𝗨𝗬𝗘𝗧 𝗗𝗘𝗟 』 ====\n━━━━━━━━━━━━━\n[ 👨‍👩‍👧‍👦 ] 𝗻𝗵𝗼́𝗺 ${threadName}\n[🔰] 𝗜𝗗: ${idBox} \n🌟 đ𝗮̃ 𝗯𝗶̣ 𝗴𝗼̛̃ 𝗸𝗵𝗼̉𝗶 𝗱𝗮𝗻𝗵 𝘀𝗮́𝗰𝗵 đ𝘂̛𝗼̛̣𝗰 𝗽𝗵𝗲́𝗽 𝘀𝘂̛̉ 𝗱𝘂̣𝗻𝗴 𝗕𝗼𝘁`, threadID, () => {
-        data.splice(data.indexOf(idBox), 1);
-        fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
-      }, messageID)
+module.exports.run = async ({ event, api, args, Threads }) => {
+  const { threadID, messageID } = event;
+  let approvedThreads = JSON.parse(fs.readFileSync(dataPath));
+  let pendingThreads = JSON.parse(fs.readFileSync(dataPendingPath));
+  let idBox = args[0] ? args[0] : threadID;
+
+  if (args[0] === "list" || args[0] === "l") {
+    let msg = "[ Nhóm Đã Duyệt ]\n";
+    for (let [index, id] of approvedThreads.entries()) {
+      const name = (await Threads.getData(id)).threadInfo.name || "Tên không tồn tại";
+      msg += `\n${index + 1}. ${name}\n🧬 ID: ${id}`;
     }
-    else if (isNaN(parseInt(idBox))) api.sendMessage("[ 𝗞𝗜𝗘̂̉𝗠 𝗗𝗨𝗬𝗘̣̂𝗧 ]\n[🔰] 𝗜𝗗 𝗯𝗮̣𝗻 𝗻𝗵𝗮̣̂𝗽 𝗸𝗵𝗼̂𝗻𝗴 𝗵𝗼̛̣𝗽 𝗹𝗲̣̂", threadID, messageID);
-  else if (data.includes(idBox)) api.sendMessage(`[ 𝗞𝗜𝗘̂̉𝗠 𝗗𝗨𝗬𝗘̣̂𝗧 ]\n[🔰] 𝗜𝗗: ${idBox} đ𝗮̃ đ𝘂̛𝗼̛̣𝗰 𝗽𝗵𝗲̂ 𝗱𝘂𝘆𝗲̣̂𝘁 𝘁𝘂̛̀ 𝘁𝗿𝘂̛𝗼̛́𝗰`, threadID, messageID);
-  else api.sendMessage("[ 𝗠𝗢𝗗𝗘 ] ➠ 𝗡𝗵𝗼́𝗺 𝗰𝘂̉𝗮 𝗯𝗮̣𝗻 đ𝗮̃ đ𝘂̛𝗼̛̣𝗰 𝗦𝗨𝗣𝗘𝗥 𝗔𝗗𝗠𝗜𝗡 𝗱𝘂𝘆𝗲̣̂𝘁 đ𝗲̂̉ 𝘀𝘂̛̉ 𝗱𝘂̣𝗻𝗴 💞", idBox, (error, info) => {
-    if (error) return api.sendMessage("[ 𝗠𝗢𝗗𝗘 ] ➠ đ𝗮̃ 𝗰𝗼́ 𝗹𝗼̂̃𝗶 𝘅𝗮̉𝘆 𝗿𝗮, đ𝗮̉𝗺 𝗯𝗮̉𝗼 𝗿𝗮̆̀𝗻𝗴 𝗜𝗗 𝗯𝗮̣𝗻 𝗻𝗵𝗮̣̂𝗽 𝗵𝗼̛̣𝗽 𝗹𝗲̣̂ 𝘃𝗮̀ 𝗕𝗼𝘁 đ𝗮𝗻𝗴 𝗼̛̉ 𝘁𝗿𝗼𝗻𝗴 𝗻𝗵𝗼́𝗺", threadID, messageID);
-      if (error) return api.sendMessage(`» Đã xảy ra lỗi`, event.threadID, event.messageID)
+    return api.sendMessage(`${msg}\n\n📌 Reply theo stt để xóa nhóm`, threadID, (error, info) => {
+      if (!error) {
+        global.client.handleReply.push({
+          name: this.config.name,
+          messageID: info.messageID,
+          author: event.senderID,
+          type: "remove",
+        });
+      }
+    }, messageID);
+  }
 
-      else api.changeNickname(`${global.config.BOTNAME}`, event.threadID, api.getCurrentUserID())
+  if (args[0] === "pending" || args[0] === "p") {
+    let msg = `[ BOX CHƯA DUYỆT ]\n`;
+    for (let [index, id] of pendingThreads.entries()) {
+      let threadInfo = (await Threads.getData(id)).threadInfo;
+      msg += `\n${index + 1}. ${threadInfo.threadName}\n🧬 ID: ${id}`;
+    }
+    return api.sendMessage(`${msg}\n\n📌 Reply theo stt để duyệt nhóm`, threadID, (error, info) => {
+      if (!error) {
+        global.client.handleReply.push({
+          name: this.config.name,
+          messageID: info.messageID,
+          author: event.senderID,
+          type: "pending",
+        });
+      }
+    }, messageID);
+  }
 
-      const axios = require('axios');
-  const request = require('request');
-  const fs = require("fs");
+  if (args[0] === "help" || args[0] === "h") {
+    const prefix = (await Threads.getData(String(threadID))).data.PREFIX || global.config.PREFIX;
+    return api.sendMessage(`[ Duyệt Box ]\n\n` +
+      `${prefix}${this.config.name} l/list => xem danh sách box đã duyệt\n` +
+      `${prefix}${this.config.name} p/pending => xem danh sách box chưa duyệt\n` +
+      `${prefix}${this.config.name} d/del => kèm theo ID để xóa khỏi danh sách\n` +
+      `${prefix}${this.config.name} => kèm theo ID để duyệt box đó`, threadID, messageID);
+  };
 
-      axios.get('https://403a9dc7-81fa-49bf-b1d5-5bf1d1abbd62-00-1pnsbrm4bvag8.picard.replit.dev/anime').then(res => {
-  let ext = res.data.data.substring(res.data.data.lastIndexOf(".") + 1);
-  let callback = function () {
-      api.sendMessage({body: `\n== 『 𝗞𝗲̂́𝘁 𝗡𝗼̂́𝗶 𝗧𝗵𝗮̀𝗻𝗵 𝗖𝗼̂𝗻𝗴 』==
-━━━━━━━━━━━━━━━
-→ 𝗣𝗿𝗲𝗳𝗶𝘅 𝗛𝗶𝗲̣̂𝗻 𝗧𝗮̣𝗶 𝗟𝗮̀: [ ${global.config.PREFIX} ]
-→ 𝗡𝗵𝗮̣̂𝗽: ${global.config.PREFIX} 𝗮𝗱𝗺𝗶𝗻 𝗹𝗶𝘀𝘁 𝘀𝗲̃ 𝗰𝗼́ 𝘁𝗵𝗼̂𝗻𝗴 𝘁𝗶𝗻 𝗰𝘂̉𝗮 𝗮𝗱𝗺𝗶𝗻 𝗯𝗼𝘁
-→ 𝗠𝗼̣𝗶 𝘁𝗵𝗮̆́𝗰 𝗺𝗮̆́𝗰 𝗰𝘂̛́ 𝗹𝗶𝗲̂𝗻 𝗵𝗲̣̂ 𝗮𝗱𝗺𝗶𝗻 𝗯𝗼𝘁: https://www.facebook.com/Hoangdevdz24107.pro?locale=vi_VN
-━━━━━━━━━━━━━━━
-→ 𝗧𝗵𝗶𝘀 𝗯𝗼𝘁 𝗺𝗮𝗱𝗲 𝗯𝘆: Hoàng Nguyễn
-→ 𝗧𝗵𝗮𝗻𝗸 𝘆𝗼𝘂 𝗳𝗼𝗿 𝘂𝘀𝗶𝗻𝗴
-→ 𝗔𝗱𝗺𝗶𝗻 𝗕𝗼𝘁: Hoàng Nguyễn`,
-            attachment: fs.createReadStream(__dirname + `/cache/duyet.${ext}`)
-          }, event.threadID,() => fs.unlinkSync(__dirname + `/cache/duyet.${ext}`), event.messageID, idBox);
-        };
-        request(res.data.url).pipe(fs.createWriteStream(__dirname + `/cache/duyet.${ext}`)).on("close", callback);
-      }) 
-      if (error) return api.sendMessage("[ 𝗠𝗢𝗗𝗘 ] ➠ đ𝗮̃ 𝗰𝗼́ 𝗹𝗼̂̃𝗶 𝘅𝗮̉𝘆 𝗿𝗮, đ𝗮̉𝗺 𝗯𝗮̉𝗼 𝗿𝗮̆̀𝗻𝗴 𝗜𝗗 𝗯𝗮̣𝗻 𝗻𝗵𝗮̣̂𝗽 𝗵𝗼̛̣𝗽 𝗹𝗲̣̂ 𝘃𝗮̀ 𝗕𝗼𝘁 đ𝗮𝗻𝗴 𝗼̛̉ 𝘁𝗿𝗼𝗻𝗴 𝗻𝗵𝗼́𝗺", threadID, messageID);
-      else {
-        data.push(idBox);
-        fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
-        api.sendMessage(`=== [ 𝗗𝘂𝘆𝗲̣̂𝘁 𝗕𝗼𝘅 ] ===
-🔰 𝗣𝗵𝗲̂ 𝗱𝘂𝘆𝗲̣̂𝘁 𝘁𝗵𝗮̀𝗻𝗵 𝗰𝗼̂𝗻𝗴 𝗻𝗵𝗼́𝗺 𝗰𝗼́ 𝗜𝗗: ${idBox}`, threadID, () => {
-          dataP.splice(dataP.indexOf(idBox), 1);
-        fs.writeFileSync(dataPending, JSON.stringify(dataP, null, 2));
-      }, messageID)
-        }
-    });
-        }
+  if (args[0] === "del" || args[0] === "d") {
+    idBox = args[1] || threadID;
+    if (!approvedThreads.includes(idBox)) {
+      return api.sendMessage("❎ Nhóm không được duyệt từ trước", threadID, messageID);
+    }
+    approvedThreads = approvedThreads.filter(id => id !== idBox);
+    fs.writeFileSync(dataPath, JSON.stringify(approvedThreads, null, 2));
+    await api.removeUserFromGroup(api.getCurrentUserID(), idBox);
+    return api.sendMessage(`✅ Nhóm ${idBox} đã bị gỡ khỏi danh sách`, threadID, messageID);
+  }
+
+  if (isNaN(parseInt(idBox))) {
+    return api.sendMessage("❎ ID không hợp lệ", threadID, messageID);
+  }
+
+  if (approvedThreads.includes(idBox)) {
+    return api.sendMessage(`❎ Nhóm ${idBox} đã được phê duyệt trước`, threadID, messageID);
+  }
+
+  approvedThreads.push(idBox);
+  pendingThreads = pendingThreads.filter(id => id !== idBox);
+  fs.writeFileSync(dataPath, JSON.stringify(approvedThreads, null, 2));
+  fs.writeFileSync(dataPendingPath, JSON.stringify(pendingThreads, null, 2));
+  api.sendMessage("✅ Nhóm của bạn đã được phê duyệt!\n📝 Chúc các bạn dùng bot vui vẻ", idBox);
+  return api.sendMessage(`✅ Phê duyệt thành công nhóm ${idBox}`, threadID, messageID);
+}
