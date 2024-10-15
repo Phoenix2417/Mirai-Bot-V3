@@ -1,12 +1,13 @@
 module.exports.config = { 
-     "name": "qtv", 
-     "version": "1.0.0", 
-     "hasPermssion": 1, 
-     "credits": "Niiozic", 
-     "description": "Thêm hoặc xoá qtv", 
-     "commandCategory": "Nhóm", 
-     "usages": "[test]", 
-     "cooldowns": 5 
+     name: "qtv", 
+     version: "1.0.0", 
+     hasPermssion: 1, 
+     credits: "Niiozic", 
+     description: "Thêm hoặc xoá qtv", 
+     commandCategory: "Admin", 
+     usages: "[test]", 
+     prefix: false,
+     cooldowns: 5 
  }; 
  module.exports.run = async function ({ event, api, Currencies, args ,Users, Threads }) { 
    if(!args[0]) return api.sendMessage('⚠️ Lựa chọn qtv add [tag/reply]', event.threadID) 
@@ -17,8 +18,8 @@ module.exports.config = {
        var uid1 = event.senderID 
        var uid = event.messageReply.senderID 
        api.sendMessage('📌 Thả cảm xúc tin nhắn này để xác nhận',  event.threadID, (error, info) => { 
-   global.client.handleReaction.push({ 
-       name: this.config.name,  
+        global.client.handleReaction.push({ 
+          name: this.config.name,  
        type: 'add' , 
        messageID: info.messageID, 
        author: uid1, 
