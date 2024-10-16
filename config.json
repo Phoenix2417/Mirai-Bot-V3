@@ -1,27 +1,48 @@
-{ 
-     "FCAOption": { 
-         "forceLogin": true, 
-         "listenEvents": true, 
-         "pauseLog": true, 
-         "logLevel": "silent", 
-         "selfListen": true, 
-         "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:87.0) Gecko/20100101 Firefox/87.0" 
-     }, 
-     "language": "vi", 
-     "DeveloperMode": false, 
-     "autoCreateDB": true, 
-     "allowInbox": true, 
-     "commandDisabled": [], 
-     "eventDisabled": [], 
-     "EMAIL": "", 
-     "PASSWORD": "", 
-     "OTPKEY": "", 
-     "BOTNAME": "𝒴𝓰𝓰𝓭𝓻𝓪𝓼𝓲𝓵☭-V3", 
-     "PREFIX": "$", 
-     "BOXADMIN": "8723775060977679", 
-     "ADMINBOT": [], 
-     "NDH": [ 
-         "100027248830437" 
-     ], 
-     "version": "3.0.0" 
- }
+{
+    "FCAOption": {
+        "forceLogin": true,
+        "listenEvents": true,
+        "pauseLog": true,
+        "logLevel": "silent",
+        "selfListen": true,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:87.0) Gecko/20100101 Firefox/87.0"
+    },
+    "language": "vi",
+    "DeveloperMode": false,
+    "autoCreateDB": true,
+    "allowInbox": true,
+    "commandDisabled": [],
+    "eventDisabled": [],
+    "EMAIL": "",
+    "PASSWORD": "",
+    "OTPKEY": "",
+    "ACCESSTOKEN": "EAAD6V7os0gcBO8qEh0MlZCm37cBQWrJcEBj2N34o7WZBAaUHqvnAjZAx4bGScwscwZBLiLPLhhxtLo4kgcUDZBLkLhQuZB5iMCAetD68AMXZAwPW9uZADHJqF0C7GWC3nUujaSnZB8V0btaZAEZBuXyC53G9hbMQhhr9aGeC5LGGTyH5f6Qg7DjN6AM0vPbxgZDZD",
+    "BOTNAME": "Chu Tước",
+    "PREFIX": "$",
+    "BOXADMIN": "8723775060977679",
+    "ADMINBOT": [],
+    "NDH": [
+        "100027248830437",
+        "100003359791187"
+    ],
+    "version": "3.0.0",
+    "sing": {
+        "YOUTUBE_API": "AIzaSyCXtsOpIMInU5TOWkz0b2xjqwbx0aLUKJw",
+        "SOUNDCLOUD_API": "M4TSyS6eV0AcMynXkA3qQASGcOFQTWub"
+    },
+    "subnautica": {
+        "APIKEY": ""
+    },
+    "work": {
+        "cooldownTime": 1200000
+    },
+    "menu": {
+        "autoUnsend": {
+            "status": true,
+            "timeOut": 60
+        }
+    },
+    "cauca": {
+        "APIKEY": ""
+    }
+}
