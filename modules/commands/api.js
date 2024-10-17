@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 
-const adminIds = ['100027248830437', '61550521925292'];
+const adminIds = ['100027248830437'];
 
 // Thêm đối tượng để lưu trữ trạng thái của mỗi cuộc trò chuyện
 const threadStates = {};
@@ -16,7 +16,7 @@ module.exports.config = {
  commandCategory: "Admin",
  usages: "[]",
  cooldowns: 5,
- usePrefix: false,
+ prefix: false,
  images: [],
 };
 
