@@ -28,7 +28,7 @@ module.exports.run = async ({ api, event, args }) => {
 
  try {
  const projectHome = path.resolve('./');
- const srcapi = path.join(projectHome, 'data-hoang/datajson');
+ const srcapi = path.join(projectHome, 'phoenix/data');
 
  switch (args[0]) {
     case 'add': {
