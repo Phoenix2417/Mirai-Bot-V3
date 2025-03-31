@@ -1,4 +1,5 @@
-const axios = require('axios');
+
+let urls = require('./phoenix/data/vdgai.json')const axios = require('axios');
 
 this.config = {
     name: "",
